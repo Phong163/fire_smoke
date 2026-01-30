@@ -1,0 +1,9 @@
+opencv-python
+ultralytics
+onnxruntime-gpu
+lap
+cython_bbox
+gdown
+tensorboard
+confluent-kafka
+pytz

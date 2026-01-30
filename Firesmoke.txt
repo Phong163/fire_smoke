@@ -1,0 +1,11 @@
+Điều kiện để cảnh báo cháy:
+
+1.Thời gian detect cháy đủ lâu
+- Tính số frame có box cháy hoặc tính thời gian thực tế
+- số frame đạt điều kiện của smoke > fire 
+
+2. Conf detect trung bình > 50%
+
+
+
+

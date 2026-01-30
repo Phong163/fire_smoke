@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pkl
+*.pt
+*.log
+dataset/
+node_modules/
+.git
+.env
