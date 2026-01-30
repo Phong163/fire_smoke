@@ -35,7 +35,8 @@ class CustomerTracker:
             raise ValueError(f"camera_id {camera_id} not found in store {store_id}")
 
         config = store_cfg["cameras"][camera_id]
-        self.camera_id = camera_id
+        self.cam_id = camera_id
+        self.box_id = store_cfg["box_id"]
         self.output_path = output_path
         self.size = size
 
