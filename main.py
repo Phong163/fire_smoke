@@ -24,18 +24,18 @@ except Exception as e:
     raise
 
 class CustomerTracker:
-    def __init__(self, store_id, camera_id, output_path, size=480, show_video=False, send_api = False, video_path=None):
+    def __init__(self, store_id, cam_id, output_path, size=480, show_video=True, send_api = False, video_path=None):
         self.show_video = show_video
         self.video_path = video_path
         self.send_api = send_api
         if store_id not in camera_configs:
             raise ValueError(f"store_id {store_id} not found")
         store_cfg = camera_configs[store_id]
-        if camera_id not in store_cfg["cameras"]:
-            raise ValueError(f"camera_id {camera_id} not found in store {store_id}")
+        if cam_id not in store_cfg["cameras"]:
+            raise ValueError(f"cam_id {cam_id} not found in store {store_id}")
 
-        config = store_cfg["cameras"][camera_id]
-        self.cam_id = camera_id
+        config = store_cfg["cameras"][cam_id]
+        self.cam_id = cam_id
         self.box_id = store_cfg["box_id"]
         self.output_path = output_path
         self.size = size
@@ -64,12 +64,12 @@ class CustomerTracker:
 
         # ======== CHỌN NGUỒN VIDEO ========
         if self.video_path and os.path.exists(self.video_path):
-            logging.info(f"Camera {self.camera_id}: sử dụng video file {self.video_path}")
+            logging.info(f"Camera {self.cam_id}: sử dụng video file {self.video_path}")
             self.cap = cv2.VideoCapture(self.video_path)
             self.is_video_file = True
         else:
-            logging.info(f"Camera {self.camera_id}: sử dụng RTSP stream")
-            self.rtsp_stream = RTSPStream(config["rtsp_url"], self.camera_id)
+            logging.info(f"Camera {self.cam_id}: sử dụng RTSP stream")
+            self.rtsp_stream = RTSPStream(config["rtsp_url"], self.cam_id)
             self.rtsp_stream.start()
             self.cap = self.rtsp_stream.cap
             self.is_video_file = False
@@ -78,13 +78,13 @@ class CustomerTracker:
         self.fps = int(self.cap.get(cv2.CAP_PROP_FPS)) or 15
         self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 640
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 480
-        logging.info(f"Cam {self.camera_id}: fps={self.fps}, size=({self.width}x{self.height})")
+        logging.info(f"Cam {self.cam_id}: fps={self.fps}, size=({self.width}x{self.height})")
 
         # ======== Output video ========
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out_dir = os.path.dirname(output_path) if '/' in output_path else './output'
         os.makedirs(out_dir, exist_ok=True)
-        self.heatmap_video_path = os.path.join(out_dir, f'output_cam{self.camera_id}_4.mp4')
+        self.heatmap_video_path = os.path.join(out_dir, f'output_cam{self.cam_id}_4.mp4')
         self.video_writer = cv2.VideoWriter(self.heatmap_video_path, fourcc, self.fps, (self.width, self.height))
 
 
@@ -109,7 +109,7 @@ class CustomerTracker:
         out_dir = f"./output/{event_type}"
         os.makedirs(out_dir, exist_ok=True)
 
-        video_path = f"{out_dir}/{event_type}_cam{self.camera_id}_{ts}.mp4"
+        video_path = f"{out_dir}/{event_type}_cam{self.cam_id}_{ts}.mp4"
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         self.record_writer = cv2.VideoWriter(
             video_path, fourcc, self.fps, (self.width, self.height)
@@ -136,7 +136,7 @@ class CustomerTracker:
         out_dir = f"./output/{event_type}"
         os.makedirs(out_dir, exist_ok=True)
 
-        img_path = f"{out_dir}/{event_type}_cam{self.camera_id}_{suffix}_{ts}.jpg"
+        img_path = f"{out_dir}/{event_type}_cam{self.cam_id}_{suffix}_{ts}.jpg"
         cv2.imwrite(img_path, frame)
         logging.info(f"Saved snapshot: {img_path}")
 
@@ -248,7 +248,7 @@ class CustomerTracker:
                 self.fire_alert_time = time.time()
 
                 logging.warning(
-                    f"FIRE ALERT Cam {self.camera_id} | "
+                    f"FIRE ALERT Cam {self.cam_id} | "
                     f"count={self.counter_fire_frame} frame "
                     f"avg_fire_conf={avg_fire_conf:.2f} "
                     f"max_conf={self.max_fire_conf:.2f} "
@@ -294,7 +294,7 @@ class CustomerTracker:
                 # reset timer snapshot 10s
                 self.smoke_alert_time = time.time()
                 logging.warning(
-                    f"SMOKE ALERT Cam {self.camera_id} | "
+                    f"SMOKE ALERT Cam {self.cam_id} | "
                     f"count={self.counter_smoke_frame} frame "
                     f"avg_smoke_conf={avg_smoke_conf:.2f} "
                     f"max_conf={self.max_smoke_conf:.2f} "
@@ -355,7 +355,7 @@ class CustomerTracker:
                         self.snapshot_10s_taken = True
                 if self.show_video:
                     self.video_writer.write(cv2.resize(annotated, (self.width, self.height)))
-                    cv2.imshow(f"Cam {self.camera_id}", annotated)
+                    cv2.imshow(f"Cam {self.cam_id}", annotated)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
         finally:
@@ -372,13 +372,13 @@ class CustomerTracker:
 
 
 # ====================== THREAD ======================
-def run_tracker_for_camera(store_id, camera_id, output_path, size, show_video, send_api, video_path=None):
+def run_tracker_for_camera(store_id, cam_id, output_path, size, show_video, send_api, video_path=None):
     tracker = None
     try:
-        tracker = CustomerTracker(store_id, camera_id, output_path, size, show_video, send_api, video_path=video_path)
+        tracker = CustomerTracker(store_id, cam_id, output_path, size, show_video, send_api, video_path=video_path)
         tracker.run()
     except Exception as e:
-        logging.error(f"Camera {camera_id} error: {e}")
+        logging.error(f"Camera {cam_id} error: {e}")
     finally:
         if tracker:
             tracker.cleanup()
@@ -386,13 +386,12 @@ def run_tracker_for_camera(store_id, camera_id, output_path, size, show_video, s
 # ====================== MAIN ======================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--camera_id', type=int, nargs='*', default=None, help="ID của camera cần chạy")
     parser.add_argument('--store_id', type=str, default='vn316', help="Mã cửa hàng")
     parser.add_argument('--output', type=str, default='./output/video.mp4', help="path output video")
     parser.add_argument('--imgsz', type=int, default=480, help="size input images")
     parser.add_argument('--show_video', action='store_true', help="show results video")
     parser.add_argument('--send_api', action='store_true', help="Send data to kafka")
-    parser.add_argument('--video_path', type=str, default=r"C:\Users\OS\Desktop\firesmoke\video_fire1.mp4", help="Đường dẫn file video để chạy thay vì camera")
+    parser.add_argument('--video_path', type=str, default=None, help="Đường dẫn file video để chạy thay vì camera")
 
     args = parser.parse_args()
 
@@ -405,7 +404,7 @@ if __name__ == "__main__":
         t.start()
         t.join()
     else:
-        cam_ids = args.camera_id or list(camera_configs[args.store_id]["cameras"].keys())
+        cam_ids = list(camera_configs[args.store_id]["cameras"].keys())
         threads = []
         for cid in cam_ids:
             t = threading.Thread(
