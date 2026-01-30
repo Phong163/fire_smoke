@@ -83,7 +83,7 @@ class CustomerTracker:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out_dir = os.path.dirname(output_path) if '/' in output_path else './output'
         os.makedirs(out_dir, exist_ok=True)
-        self.heatmap_video_path = os.path.join(out_dir, f'heatmap_cam{self.camera_id}_4.mp4')
+        self.heatmap_video_path = os.path.join(out_dir, f'output_cam{self.camera_id}_4.mp4')
         self.video_writer = cv2.VideoWriter(self.heatmap_video_path, fourcc, self.fps, (self.width, self.height))
 
 
@@ -105,7 +105,7 @@ class CustomerTracker:
         self.snapshot_10s_taken = False
     def start_recording(self, event_type):
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir = f"./alerts/{event_type}"
+        out_dir = f"./output/{event_type}"
         os.makedirs(out_dir, exist_ok=True)
 
         video_path = f"{out_dir}/{event_type}_cam{self.camera_id}_{ts}.mp4"
@@ -123,21 +123,21 @@ class CustomerTracker:
         self.snapshot_taken = False
         self.snapshot_10s_taken = False
 
-        logging.info(f"🎥 Start recording {event_type} video: {video_path}")
+        logging.info(f"Start recording {event_type} video: {video_path}")
     def stop_recording(self):
         if self.record_writer:
             self.record_writer.release()
         self.record_writer = None
         self.recording = False
-        logging.info("🎬 Stop recording alert video")
+        logging.info("Stop recording alert video")
     def save_snapshot(self, frame, event_type, suffix):
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir = f"./alerts/{event_type}"
+        out_dir = f"./output/{event_type}"
         os.makedirs(out_dir, exist_ok=True)
 
         img_path = f"{out_dir}/{event_type}_cam{self.camera_id}_{suffix}_{ts}.jpg"
         cv2.imwrite(img_path, frame)
-        logging.info(f"🖼 Saved snapshot: {img_path}")
+        logging.info(f"Saved snapshot: {img_path}")
 
     def process_frame(self, frame):
         self.current_frame += 1
@@ -247,7 +247,7 @@ class CustomerTracker:
                 self.fire_alert_time = time.time()
 
                 logging.warning(
-                    f"🔥 FIRE ALERT Cam {self.camera_id} | "
+                    f"FIRE ALERT Cam {self.camera_id} | "
                     f"count={self.counter_fire_frame} frame "
                     f"avg_fire_conf={avg_fire_conf:.2f} "
                     f"max_conf={self.max_fire_conf:.2f} "
@@ -293,7 +293,7 @@ class CustomerTracker:
                 # reset timer snapshot 10s
                 self.smoke_alert_time = time.time()
                 logging.warning(
-                    f"🔥 SMOKE ALERT Cam {self.camera_id} | "
+                    f"SMOKE ALERT Cam {self.camera_id} | "
                     f"count={self.counter_smoke_frame} frame "
                     f"avg_smoke_conf={avg_smoke_conf:.2f} "
                     f"max_conf={self.max_smoke_conf:.2f} "
@@ -341,7 +341,6 @@ class CustomerTracker:
                 self.frame_buffer.append(annotated.copy())
                 if self.recording:
                     self.record_writer.write(cv2.resize(annotated, (self.width, self.height)))
-
                     elapsed = time.time() - self.record_start_time
                     if elapsed >= self.record_seconds:
                         self.stop_recording()
