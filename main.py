@@ -24,8 +24,8 @@ except Exception as e:
     raise
 
 class CustomerTracker:
-    def __init__(self, store_id, camera_id, output_path, size=480, show_video=True, send_api = False, video_path=None):
-        self.show_video = True
+    def __init__(self, store_id, camera_id, output_path, size=480, show_video=False, send_api = False, video_path=None):
+        self.show_video = show_video
         self.video_path = video_path
         self.send_api = send_api
         if store_id not in camera_configs:
