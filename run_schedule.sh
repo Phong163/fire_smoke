@@ -17,8 +17,7 @@ while true; do
   if check_time; then
     if [ $APP_PID -eq 0 ] || ! kill -0 $APP_PID 2>/dev/null; then
       echo "[$(date '+%H:%M:%S')] Daytime -> starting app..."
-      python3 /app/main_metric3.py --send_api --store_id vn300  &
-      python3 /app/main_metric3.py --send_api --store_id vn316  &
+      python3 /app/main.py --send_api --store_id vn316  &
       APP_PID=$!
     fi
   else
